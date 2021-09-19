@@ -1,10 +1,18 @@
 import React, { Component } from "react";
 import Web3 from "web3";
 import Identicon from "identicon.js";
-import "./App.css";
+
 import Decentragram from "../abis/Decentragram.json";
 import Navbar from "./Navbar";
 import Main from "./Main";
+import "./App.css";
+
+const ipfsClient = require("ipfs-http-client");
+const ipfs = ipfsClient({
+  host: "ipfs.infura.io",
+  port: 5001,
+  protocol: "https"
+});
 
 class App extends Component {
   async componentDidMount() {
@@ -60,6 +68,27 @@ class App extends Component {
     };
   };
 
+  uploadImage = description => {
+    console.log("Submitting file to ipfs...");
+
+    // adding file to the ipfs
+    ipfs.add(this.state.buffer, (error, result) => {
+      console.log("ipfs result:", result);
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      this.setState({ loading: true });
+      this.state.decentragram.methods
+        .uploadImage(result[0].hash, description)
+        .send({ from: this.state.account })
+        .on("transactionHash", hash => {
+          this.setState({ loading: false });
+        });
+    });
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -80,7 +109,7 @@ class App extends Component {
             <p>Loading...</p>
           </div>
         ) : (
-          <Main captureFile={this.captureFile} />
+          <Main captureFile={this.captureFile} uploadImage={this.uploadImage} />
         )}
       </div>
     );
