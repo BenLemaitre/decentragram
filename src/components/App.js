@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import Web3 from "web3";
-import Identicon from "identicon.js";
 
 import Decentragram from "../abis/Decentragram.json";
 import Navbar from "./Navbar";
@@ -24,9 +23,7 @@ class App extends Component {
   async loadWeb3() {
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
-      await window.ethereum.enable();
-    } else if (window.web3) {
-      window.web3 = new Web3(window.web3.currentProvider);
+      await window.ethereum.request({ method: "eth_requestAccounts" });
     } else {
       window.alert(
         "Non-Ethereum browser detected. You should consider trying Metamask"
@@ -44,13 +41,21 @@ class App extends Component {
     const networkId = await web3.eth.net.getId();
     const networkData = Decentragram.networks[networkId];
     if (networkData) {
-      const decentragram = web3.eth.Contract(
+      const decentragram = new web3.eth.Contract(
         Decentragram.abi,
         networkData.address
       );
       const imageCount = await decentragram.methods.imageCount().call();
 
       this.setState({ decentragram, imageCount });
+
+      // load images
+      for (let i = 0; i < imageCount; i++) {
+        const image = await decentragram.methods.images(i).call();
+        this.setState({
+          images: [...this.state.images, image]
+        });
+      }
     } else {
       window.alert("Decentragram contract not deployed to detected network");
     }
@@ -68,16 +73,13 @@ class App extends Component {
     };
   };
 
-  uploadImage = description => {
+  uploadImage = async description => {
     console.log("Submitting file to ipfs...");
 
-    // adding file to the ipfs
-    ipfs.add(this.state.buffer, (error, result) => {
-      console.log("ipfs result:", result);
-      if (error) {
-        console.error(error);
-        return;
-      }
+    try {
+      // adding file to the ipfs
+      const result = await ipfs.add(this.state.buffer);
+      console.log(result);
 
       this.setState({ loading: true });
       this.state.decentragram.methods
@@ -86,7 +88,9 @@ class App extends Component {
         .on("transactionHash", hash => {
           this.setState({ loading: false });
         });
-    });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   constructor(props) {
@@ -109,7 +113,11 @@ class App extends Component {
             <p>Loading...</p>
           </div>
         ) : (
-          <Main captureFile={this.captureFile} uploadImage={this.uploadImage} />
+          <Main
+            images={this.state.images}
+            captureFile={this.captureFile}
+            uploadImage={this.uploadImage}
+          />
         )}
       </div>
     );

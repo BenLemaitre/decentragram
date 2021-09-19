@@ -40,14 +40,13 @@ contract Decentragram {
     require(bytes(_imgHash).length > 0);
     require(msg.sender != address(0x0));    // empty address 0x0
 
-    // increment image id
-    imageCount++;
-
     // add image to contract
     images[imageCount] = Image(imageCount, _imgHash, _desc, 0, msg.sender);
 
     // trigger event with the "emit" keyword
     emit ImageCreated(imageCount, _imgHash, _desc, 0, msg.sender);
+    // increment image id
+    imageCount = imageCount + 1;
   }
 
   // Tip images

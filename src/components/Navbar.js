@@ -35,6 +35,7 @@ class Navbar extends Component {
                   this.props.account,
                   30
                 ).toString()}`}
+                alt="Account Identicon"
               />
             ) : (
               <span></span>
