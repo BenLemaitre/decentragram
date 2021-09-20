@@ -42,19 +42,20 @@ contract Decentragram {
     // Make sure uploader address exists
     require(msg.sender!=address(0));
 
-    // Increment image id
-    imageCount ++;
-
     // Add Image to the contract
     images[imageCount] = Image(imageCount, _imgHash, _desc, 0, msg.sender);
+    
     // Trigger an event
     emit ImageCreated(imageCount, _imgHash, _desc, 0, msg.sender);
+
+    // Increment image id
+    imageCount ++;
   }
 
   // Tip images
   function tipImageOwner (uint _id) public payable {
     // Make sure the id is valid
-    require(_id > 0 && _id <= imageCount);
+    require(_id >= 0 && _id < imageCount);
     // Fetch the image
     Image memory _image = images[_id];
     // Fetch the author

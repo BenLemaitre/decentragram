@@ -38,13 +38,14 @@ contract("Decentragram", ([deployer, author, tipper]) => {
         from: author
       });
       imageCount = await decentragram.imageCount();
+      imageCount = imageCount.toNumber() - 1;
     });
 
     it("creates images", async () => {
       // success
-      assert.equal(imageCount, 1);
+      assert.equal(imageCount, 0);
       const event = result.logs[0].args;
-      assert.equal(event.id.toNumber(), imageCount.toNumber(), "id is correct");
+      assert.equal(event.id.toNumber(), imageCount, "id is correct");
       assert.equal(event.hash, hash, "hash is correct");
       assert.equal(
         event.description,
@@ -67,7 +68,7 @@ contract("Decentragram", ([deployer, author, tipper]) => {
     it("lists images", async () => {
       // check from struct
       const image = await decentragram.images(imageCount);
-      assert.equal(image.id.toNumber(), imageCount.toNumber(), "id is correct");
+      assert.equal(image.id.toNumber(), imageCount, "id is correct");
       assert.equal(image.hash, hash, "hash is correct");
       assert.equal(
         image.description,
@@ -91,7 +92,7 @@ contract("Decentragram", ([deployer, author, tipper]) => {
 
       // success
       const event = result.logs[0].args;
-      assert.equal(event.id.toNumber(), imageCount.toNumber(), "id is correct");
+      assert.equal(event.id.toNumber(), imageCount, "id is correct");
       assert.equal(event.hash, hash, "Hash is correct");
       assert.equal(
         event.description,
